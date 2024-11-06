@@ -36,9 +36,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     <div class="container">
         <div class="header">
-            <h1>Sign In</h1>
+            <h1>Sign Up</h1>
         </div>
-        <form method="post" action="signin.php">
+        <form method="post" action="signup.php">
             <div class="input-group">
                 <label for="username">Username</label>
                 <input type="text" name="username" id="username" required>
@@ -53,14 +53,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <?php if (!empty($success_message)): ?>
                 <p class="success-message"><?php echo htmlspecialchars($success_message); ?></p>
             <?php endif; ?>
-            <button type="submit" class="start-button">Sign In</button>
+            <button type="submit" class="start-button">Sign Up</button>
         </form>
 
         <!-- Sign In Button -->
-        <form action="signup.php" method="get">
-            <button type="submit" class="start-button">Don't have an account? Sign Up</button>
+        <form action="signin.php" method="get">
+            <button type="submit" class="start-button">Already have an account? Sign In</button>
         </form>
     </div>
 </body>
 
 </html>
+
+
