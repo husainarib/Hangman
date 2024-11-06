@@ -1,11 +1,18 @@
 <?php
-// start_game.php - handle the form submission and start the game
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $difficulty = $_POST['difficulty'];
-    // Redirect to the game page with the chosen difficulty
-    header("Location: game.php?difficulty=$difficulty");
+session_start();
+
+// Check if difficulty is set in POST request
+if (isset($_POST['difficulty'])) {
+    // Store the selected difficulty in session
+    $_SESSION['difficulty'] = $_POST['difficulty'];
+    
+    // Redirect to the game page
+    header("Location: hangman.php");
     exit();
 } else {
-    echo "Please select a difficulty level.";
+    // If no difficulty was selected, redirect back to homepage
+    header("Location: homepage.html");
+    exit();
 }
 ?>
+
