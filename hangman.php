@@ -1,6 +1,11 @@
 <?php
 session_start();
 
+// Initialize or update the wins cookie
+if (!isset($_COOKIE['wins'])) {
+    setcookie('wins', 0, time() + (86400 * 30), "/");
+}
+
 // Set up words for each difficulty
 $words = [
     'easy' => ['apple', 'book', 'cat', 'dog', 'fish'],
@@ -45,9 +50,13 @@ foreach (str_split($word) as $letter) {
 $isGameOver = $_SESSION['attempts'] <= 0;
 $isGameWon = $allGuessed && !$isGameOver;
 
-// Reset game
-if ($isGameOver || $isGameWon) {
-    session_destroy(); // End session to start a new game
+// Update the wins cookie if the game is won
+if ($isGameWon) {
+    $wins = isset($_COOKIE['wins']) ? $_COOKIE['wins'] + 1 : 1;
+    setcookie('wins', $wins, time() + (86400 * 30), "/");
+    session_destroy();
+} elseif ($isGameOver) {
+    session_destroy();
 }
 
 ?>
@@ -67,6 +76,9 @@ if ($isGameOver || $isGameWon) {
         <h1>Hangman - <?php echo ucfirst($difficulty); ?> Mode</h1>
         <p>Guess the word:</p>
         <p class="word"><?php echo $displayWord; ?></p>
+
+        <!-- Display win count -->
+        <p>Your Total Wins: <?php echo isset($_COOKIE['wins']) ? $_COOKIE['wins'] : 0; ?></p>
 
         <?php if ($isGameOver): ?>
             <p class="message">Game Over! The word was "<?php echo $word; ?>"</p>
