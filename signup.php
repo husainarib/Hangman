@@ -13,26 +13,39 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (!empty($username) && !empty($password)) {
         $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
-        // Check if the username already exists in users.txt
-        $file = fopen("users.txt", "a+");
-        $exists = false;
-        while (($line = fgets($file)) !== false) {
-            list($existingUsername, $existingPassword) = explode(",", trim($line));
-            if ($existingUsername === $username) {
-                $exists = true;
-                break;
+        // Open the file in read/write mode from the beginning
+        $file = fopen("users.txt", "r+");
+        
+        if ($file) {
+            $exists = false;
+            
+            // Check if the username already exists
+            while (($line = fgets($file)) !== false) {
+                list($existingUsername, $existingPassword) = explode(",", trim($line));
+                if ($existingUsername === $username) {
+                    $exists = true;
+                    break;
+                }
             }
-        }
-        fclose($file);
 
-        if ($exists) {
-            $error_message = "Username already exists. Please choose a different one.";
-        } else {
-            // Store the new username and hashed password
-            $file = fopen("users.txt", "a");
-            fwrite($file, "$username,$hashedPassword\n");
             fclose($file);
-            $success_message = "Account created successfully for $username!";
+
+            if ($exists) {
+                $error_message = "Username already exists. Please choose a different one.";
+            } else {
+                // Open the file in append mode to add the new user
+                $file = fopen("users.txt", "a");
+                
+                if ($file) {
+                    fwrite($file, "$username,$hashedPassword\n");
+                    fclose($file);
+                    $success_message = "Account created successfully for $username!";
+                } else {
+                    $error_message = "Error: Could not open the file for writing.";
+                }
+            }
+        } else {
+            $error_message = "Error: Could not open the file for reading.";
         }
     } else {
         $error_message = "Please fill in all fields.";
@@ -42,14 +55,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign Up</title>
     <link rel="stylesheet" href="styles.css">
 </head>
-
 <body>
     <!-- Back to Homepage Button -->
     <a href="homepage.html" class="back-button">Back to Homepage</a>
@@ -82,5 +93,4 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </form>
     </div>
 </body>
-
 </html>
