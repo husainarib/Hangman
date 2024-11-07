@@ -54,12 +54,14 @@ if ($isGameOver || $isGameWon) {
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hangman Game</title>
     <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
     <div class="container">
         <h1>Hangman - <?php echo ucfirst($difficulty); ?> Mode</h1>
@@ -77,12 +79,12 @@ if ($isGameOver || $isGameWon) {
                 <button type="submit">Guess</button>
             </form>
             <p>Guessed letters: <?php echo implode(', ', $_SESSION['guesses']); ?></p>
-            <?php endif; ?>
-    </div>
-    <?php if ($isGameOver || $isGameWon): ?>
-        <!-- Button moved outside of the container -->
-        <a href="homepage.html" class="button">Play Again</a>
-    <?php endif; ?>
-</body>
-</html>
+        <?php endif; ?>
 
+        <?php if ($isGameOver || $isGameWon): ?>
+            <a href="homepage.html" class="play-again-button">Play Again</a>
+        <?php endif; ?>
+    </div>
+</body>
+
+</html>
