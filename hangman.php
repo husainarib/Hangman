@@ -1,9 +1,12 @@
 <?php
 session_start();
 
-// Initialize or update the wins cookie
+// Initialize or retrieve the wins cookie and session variable for instant access
 if (!isset($_COOKIE['wins'])) {
     setcookie('wins', 0, time() + (86400 * 30), "/");
+    $_SESSION['wins'] = 0;
+} else {
+    $_SESSION['wins'] = $_COOKIE['wins'];
 }
 
 // Set up words for each difficulty
@@ -13,18 +16,20 @@ $words = [
     'hard' => ['javascript', 'university', 'extraterrestrial', 'submarine', 'microscope']
 ];
 
-// Retrieve the difficulty level from the session
+// Retrieve the difficulty level from the session or set default
 $difficulty = $_SESSION['difficulty'] ?? 'easy';
 
-// Pick a random word if not already set
+// Pick a random word if not already set or if a new difficulty level is chosen
 if (!isset($_SESSION['word']) || $_SESSION['difficulty'] != $difficulty) {
     $_SESSION['word'] = $words[$difficulty][array_rand($words[$difficulty])];
     $_SESSION['guesses'] = [];
-    $_SESSION['attempts'] = 6; // Allow 6 attempts for each game
+    $_SESSION['attempts'] = 6; // Allow 6 attempts per game
+    $_SESSION['game_over'] = false;
+    $_SESSION['difficulty'] = $difficulty;
 }
 
-// Handle letter guessing
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['guess'])) {
+// Handle letter guessing if the game is active
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['guess']) && !$_SESSION['game_over']) {
     $guess = strtolower($_POST['guess']);
     if (!in_array($guess, $_SESSION['guesses'])) {
         $_SESSION['guesses'][] = $guess;
@@ -38,6 +43,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['guess'])) {
 $word = $_SESSION['word'];
 $displayWord = '';
 $allGuessed = true;
+
 foreach (str_split($word) as $letter) {
     if (in_array($letter, $_SESSION['guesses'])) {
         $displayWord .= $letter . ' ';
@@ -50,27 +56,25 @@ foreach (str_split($word) as $letter) {
 $isGameOver = $_SESSION['attempts'] <= 0;
 $isGameWon = $allGuessed && !$isGameOver;
 
-// Update the wins cookie if the game is won
-if ($isGameWon) {
-    $wins = isset($_COOKIE['wins']) ? $_COOKIE['wins'] + 1 : 1;
-    setcookie('wins', $wins, time() + (86400 * 30), "/");
-    session_destroy();
+// Update the wins count and cookie if the game is won
+if ($isGameWon && !$_SESSION['game_over']) {
+    $_SESSION['wins']++; // Update session win count
+    setcookie('wins', $_SESSION['wins'], time() + (86400 * 30), "/"); // Update cookie win count
+    $_SESSION['game_over'] = true; // Mark game as over
 } elseif ($isGameOver) {
-    session_destroy();
+    $_SESSION['game_over'] = true;
 }
 
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hangman Game</title>
     <link rel="stylesheet" href="styles.css">
 </head>
-
 <body>
     <div class="container">
         <h1>Hangman - <?php echo ucfirst($difficulty); ?> Mode</h1>
@@ -78,7 +82,7 @@ if ($isGameWon) {
         <p class="word"><?php echo $displayWord; ?></p>
 
         <!-- Display win count -->
-        <p>Your Total Wins: <?php echo isset($_COOKIE['wins']) ? $_COOKIE['wins'] : 0; ?></p>
+        <p>Your Total Wins: <?php echo $_SESSION['wins']; ?></p>
 
         <?php if ($isGameOver): ?>
             <p class="message">Game Over! The word was "<?php echo $word; ?>"</p>
@@ -94,9 +98,10 @@ if ($isGameWon) {
         <?php endif; ?>
 
         <?php if ($isGameOver || $isGameWon): ?>
-            <a href="homepage.html" class="play-again-button">Play Again</a>
+            <!-- Clear session and start new game on 'Play Again' -->
+            <a href="reset.php" class="play-again-button">Play Again</a>
         <?php endif; ?>
     </div>
 </body>
-
 </html>
+
