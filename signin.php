@@ -24,7 +24,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         fclose($file);
 
         if ($loggedIn) {
-            header("Location: homepage.html"); // Redirect to the homepage
+            header("Location: homepage.html");
             exit;
         } else {
             $error_message = "Invalid username or password.";
