@@ -1,20 +1,35 @@
 <?php
 session_start();
 
-// Initialize error message and success message
+// Initialize error message
 $error_message = "";
-$success_message = "";
 
-// Handle form submission
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $username = $_POST['username'];
-    $password = $_POST['password'];
+    $username = trim($_POST['username']);
+    $password = trim($_POST['password']);
 
     if (!empty($username) && !empty($password)) {
-        // If both fields are filled, set a success message
-        $success_message = "Account created successfully for $username!";
+        $file = fopen("users.txt", "r");
+        $loggedIn = false;
+
+        while (($line = fgets($file)) !== false) {
+            list($storedUsername, $storedHashedPassword) = explode(",", trim($line));
+            if ($storedUsername === $username && password_verify($password, $storedHashedPassword)) {
+                $_SESSION['username'] = $username;
+                $_SESSION['welcome_message'] = "Welcome, " . htmlspecialchars($username) . "!";
+                $loggedIn = true;
+                break;
+            }
+        }
+        fclose($file);
+
+        if ($loggedIn) {
+            header("Location: homepage.html"); // Redirect to the homepage
+            exit;
+        } else {
+            $error_message = "Invalid username or password.";
+        }
     } else {
-        // If field is empty, set an error message
         $error_message = "Please fill in all fields.";
     }
 }
@@ -26,7 +41,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up</title>
+    <title>Sign In</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 
@@ -50,13 +65,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <?php if (!empty($error_message)): ?>
                 <p class="error-message"><?php echo htmlspecialchars($error_message); ?></p>
             <?php endif; ?>
-            <?php if (!empty($success_message)): ?>
-                <p class="success-message"><?php echo htmlspecialchars($success_message); ?></p>
-            <?php endif; ?>
             <button type="submit" class="start-button">Sign In</button>
         </form>
 
-        <!-- Sign In Button -->
+        <!-- Sign Up Button -->
         <form action="signup.php" method="get">
             <button type="submit" class="start-button">Don't have an account? Sign Up</button>
         </form>

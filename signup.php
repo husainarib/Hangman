@@ -1,20 +1,40 @@
 <?php
 session_start();
 
-// Initialize error message and success message
+// Initialize error and success messages
 $error_message = "";
 $success_message = "";
 
 // Handle form submission
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $username = $_POST['username'];
-    $password = $_POST['password'];
+    $username = trim($_POST['username']);
+    $password = trim($_POST['password']);
 
     if (!empty($username) && !empty($password)) {
-        // If both fields are filled, set a success message
-        $success_message = "Account created successfully for $username!";
+        $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+
+        // Check if the username already exists in users.txt
+        $file = fopen("users.txt", "a+");
+        $exists = false;
+        while (($line = fgets($file)) !== false) {
+            list($existingUsername, $existingPassword) = explode(",", trim($line));
+            if ($existingUsername === $username) {
+                $exists = true;
+                break;
+            }
+        }
+        fclose($file);
+
+        if ($exists) {
+            $error_message = "Username already exists. Please choose a different one.";
+        } else {
+            // Store the new username and hashed password
+            $file = fopen("users.txt", "a");
+            fwrite($file, "$username,$hashedPassword\n");
+            fclose($file);
+            $success_message = "Account created successfully for $username!";
+        }
     } else {
-        // If field is empty, set an error message
         $error_message = "Please fill in all fields.";
     }
 }
@@ -64,5 +84,3 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 </body>
 
 </html>
-
-
